@@ -1,6 +1,12 @@
 import asyncio
 import os
+import sys
 import subprocess
+
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+if MODULE_DIR not in sys.path:
+    sys.path.insert(0, MODULE_DIR)
+
 from src.config import OUTPUT_TEX, IMAGES_DIR, BASE_DIR
 from src.parser import collect_all_questions
 from src.formatter import append_raw_questions_step1, format_latex_step2
