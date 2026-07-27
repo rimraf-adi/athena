@@ -50,65 +50,46 @@ def parse_question_div(q_div):
         'exp_el': exp_div
     }
 
-async def fetch_and_parse(client, base_url):
+async def fetch_topic_pages(client, base_url):
     page = 1
-    matched = []
-    while True:
-        url = f"{base_url}?page_no={page}"
+    questions = []
+    while page <= 50:
+        url = f'{base_url}?page_no={page}'
         try:
-            r = await client.get(url, follow_redirects=True, timeout=15.0)
+            r = await client.get(url, timeout=10.0)
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html.parser')
                 qs = soup.find_all('div', class_='question')
                 if not qs:
                     break
                 for q in qs:
-                    tags_div = q.find('div', class_='year_sub_chap_link')
-                    tag_texts = [a.get_text(strip=True).lower() for a in tags_div.find_all('a')] if tags_div else []
-                    tag_hrefs = [a.get('href', '').lower() for a in tags_div.find_all('a')] if tags_div else []
-
-                    is_match = False
-                    if any(kw in base_url.lower() for kw in ['signals', 'laplace', 'z-transform', 'fourier', 'sampling', 'dtfs', 'digital-filters']):
-                        is_match = True
-                    else:
-                        for kw in SIGNALS_KEYWORDS:
-                            if any(kw in t for t in tag_texts) or any(kw in h for h in tag_hrefs):
-                                is_match = True
-                                break
-
-                    if is_match:
-                        parsed = parse_question_div(q)
-                        matched.append(parsed)
+                    questions.append(parse_question_div(q))
                 page += 1
             else:
                 break
-        except Exception as e:
-            print(f"Error crawling {url}: {e}")
+        except Exception:
             break
-    return base_url, matched
+    return questions
 
 async def collect_all_questions():
-    async with httpx.AsyncClient(headers=HEADERS, timeout=20.0) as client:
-        print(f"Scraping signals questions across {len(ALL_URLS)} candidate URLs with pagination...")
-        all_unique = []
-        seen_keys = set()
-        chunk_size = 5
+    async with httpx.AsyncClient(headers=HEADERS, follow_redirects=True, timeout=15.0) as client:
+        primary_url = 'https://practicepaper.in/gate-ec/signals-and-systems'
+        all_qs = await fetch_topic_pages(client, primary_url)
 
-        for i in range(0, len(ALL_URLS), chunk_size):
-            chunk = ALL_URLS[i:i+chunk_size]
-            results = await asyncio.gather(*[fetch_and_parse(client, u) for u in chunk])
-            for u, questions in results:
-                for q in questions:
-                    if q['text_el']:
-                        key = q['text_el'].get_text(strip=True)[:100]
-                        if key not in seen_keys:
-                            seen_keys.add(key)
-                            all_unique.append(q)
+        res_other = await asyncio.gather(*[fetch_topic_pages(client, u) for u in ALL_URLS if u != primary_url])
+        seen = set([q['text_el'].get_text(strip=True)[:100] for q in all_qs if q['text_el']])
+        for page_qs in res_other:
+            for q in page_qs:
+                if q['text_el']:
+                    key = q['text_el'].get_text(strip=True)[:100]
+                    if key not in seen:
+                        seen.add(key)
+                        all_qs.append(q)
 
-        print(f"Total unique Signals and Systems questions collected: {len(all_unique)}")
+        print(f"Total unique Signals and Systems questions collected: {len(all_qs)}")
 
-        image_map = {}
-        for q in all_unique:
+        image_urls = set()
+        for q in all_qs:
             for el in [q['text_el'], q['exp_el']] + [opt['el'] for opt in q['options'] if opt['el']]:
                 if el:
                     for img in el.find_all('img'):
@@ -116,10 +97,15 @@ async def collect_all_questions():
                         if src.startswith('data:image'):
                             src = img.get('data-src') or img.get('data-lazy-src') or ''
                         if src:
-                            filename = await download_image(client, src)
                             full_src = "https://practicepaper.in" + src if src.startswith('/') else src
-                            image_map[full_src] = filename
-                            image_map[src] = filename
+                            image_urls.add(full_src)
 
-        return all_unique, image_map
+        sem = asyncio.Semaphore(25)
+        async def dl(url):
+            async with sem:
+                return url, await download_image(client, url)
 
+        img_results = await asyncio.gather(*[dl(url) for url in image_urls])
+        image_map = dict(img_results)
+
+        return all_qs, image_map
