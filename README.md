@@ -74,10 +74,45 @@ This will automatically scrape missing questions, download inline diagrams to `s
 
 ---
 
+## 📡 Module 2: Electromagnetics & Transmission Lines (`emft`)
+
+### Overview
+- **Questions Covered:** 202 Solved Questions (GATE EC 2001–2026)
+- **Document Output:** [`emft/emft-pyq.pdf`](emft/emft-pyq.pdf) (~177 pages)
+- **LaTeX Source:** [`emft/emft-pyq.tex`](emft/emft-pyq.tex)
+- **Topic Coverage Map:** [`emft/COVERAGE.md`](emft/COVERAGE.md)
+
+### Topics Included
+1. **Basics of Electromagnetics & Maxwell's Equations**
+2. **Uniform Plane Waves & Polarization**
+3. **Transmission Lines & Impedance Matching**
+4. **Waveguides & Optical Fibers**
+5. **Antennas & Radiating Systems**
+
+---
+
+## 🎛️ Module 3: Control Systems (`control-systems`)
+
+### Overview
+- **Questions Covered:** 210 Solved Questions (GATE EC 2001–2026)
+- **Document Output:** [`control-systems/cs-pyq.pdf`](control-systems/cs-pyq.pdf) (~214 pages)
+- **LaTeX Source:** [`control-systems/cs-pyq.tex`](control-systems/cs-pyq.tex)
+- **Topic Coverage Map:** [`control-systems/COVERAGE.md`](control-systems/COVERAGE.md)
+
+### Topics Included
+1. **Basics, Block Diagrams & Signal Flow Graphs (SFGs)**
+2. **Time Response Analysis**
+3. **Stability Analysis & Routh-Hurwitz**
+4. **Root Locus Technique**
+5. **Frequency Response Analysis (Bode & Nyquist Plots)**
+6. **Compensators & Controllers**
+7. **State Space Analysis**
+
+---
+
 ## 🔮 Future Modules (Upcoming)
 
-- `control-systems/` — Control Systems
 - `analog/` — Analog Circuits & Electronics
 - `digital/` — Digital Circuits
-- `emft/` — Electromagnetics & Transmission Lines
 - `communications/` — Analog & Digital Communications
+

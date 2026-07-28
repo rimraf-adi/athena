@@ -10,3 +10,9 @@ dependencies = [
     "pillow>=12.3.0",
     "selectolax>=0.4.11",
 ]
+
+[tool.pyright]
+extraPaths = ["sns", "emft", "control-systems"]
+
+
+

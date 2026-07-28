@@ -40,11 +40,14 @@ def clean_html_to_latex(html_element, image_map):
     soup = BeautifulSoup(str(html_element), 'html.parser')
 
     for img in soup.find_all('img'):
-        src = img.get('src', '')
+        raw_src = img.get('src')
+        src = str(raw_src[0] if isinstance(raw_src, list) else (raw_src or ''))
         if src.startswith('data:image'):
-            src = img.get('data-src') or img.get('data-lazy-src') or ''
+            raw_lazy = img.get('data-src') or img.get('data-lazy-src')
+            src = str(raw_lazy[0] if isinstance(raw_lazy, list) else (raw_lazy or ''))
         if src.startswith('/'):
             src = "https://practicepaper.in" + src
+
         if src in image_map and image_map[src]:
             img_file = image_map[src]
             img.replace_with(f"\n\\begin{{center}}\\includegraphics[max width=0.85\\linewidth]{{images/{img_file}}}\\end{{center}}\n")
